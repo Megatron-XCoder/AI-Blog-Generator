@@ -1,0 +1,195 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    --background: 250 100% 99%;
+    --foreground: 240 10% 3.9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+
+    --primary: 262 83% 58%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 260 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+
+    --muted: 260 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+
+    --accent: 260 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 262 83% 58%;
+
+    /* AI Blog Platform Colors */
+    --primary-gradient: linear-gradient(135deg, hsl(262 83% 58%), hsl(280 100% 70%));
+    --secondary-gradient: linear-gradient(135deg, hsl(240 100% 98%), hsl(260 100% 99%));
+    --hero-gradient: linear-gradient(135deg, hsl(262 83% 58%) 0%, hsl(280 100% 70%) 50%, hsl(300 100% 75%) 100%);
+    --surface-gradient: linear-gradient(180deg, hsl(250 100% 99%) 0%, hsl(260 100% 98%) 100%);
+    
+    /* Shadows */
+    --shadow-soft: 0 4px 12px -2px hsl(262 83% 58% / 0.15);
+    --shadow-medium: 0 8px 25px -5px hsl(262 83% 58% / 0.25);
+    --shadow-strong: 0 20px 40px -12px hsl(262 83% 58% / 0.4);
+    
+    /* Blog Typography */
+    --blog-heading: 240 10% 3.9%;
+    --blog-text: 240 5% 25%;
+    --blog-muted: 240 4% 46%;
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 0 0% 98%;
+
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 280 100% 70%;
+    --primary-foreground: 240 10% 3.9%;
+
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 280 100% 70%;
+
+    /* Dark Mode AI Blog Platform Colors */
+    --primary-gradient: linear-gradient(135deg, hsl(280 100% 70%), hsl(262 83% 58%));
+    --secondary-gradient: linear-gradient(135deg, hsl(240 10% 3.9%), hsl(240 3.7% 15.9%));
+    --hero-gradient: linear-gradient(135deg, hsl(280 100% 70%) 0%, hsl(262 83% 58%) 50%, hsl(300 100% 65%) 100%);
+    --surface-gradient: linear-gradient(180deg, hsl(240 10% 3.9%) 0%, hsl(240 3.7% 15.9%) 100%);
+    
+    /* Dark Shadows */
+    --shadow-soft: 0 4px 12px -2px hsl(280 100% 70% / 0.3);
+    --shadow-medium: 0 8px 25px -5px hsl(280 100% 70% / 0.4);
+    --shadow-strong: 0 20px 40px -12px hsl(280 100% 70% / 0.5);
+    
+    /* Dark Blog Typography */
+    --blog-heading: 0 0% 98%;
+    --blog-text: 240 5% 84.9%;
+    --blog-muted: 240 5% 64.9%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    background: var(--surface-gradient);
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  
+  .gradient-primary {
+    background: var(--primary-gradient);
+  }
+  
+  .gradient-hero {
+    background: var(--hero-gradient);
+  }
+  
+  .shadow-soft {
+    box-shadow: var(--shadow-soft);
+  }
+  
+  .shadow-medium {
+    box-shadow: var(--shadow-medium);
+  }
+  
+  .shadow-strong {
+    box-shadow: var(--shadow-strong);
+  }
+
+  .blog-content {
+    @apply text-[hsl(var(--blog-text))];
+  }
+  
+  .blog-content h1 {
+    @apply text-3xl md:text-4xl font-bold text-[hsl(var(--blog-heading))] mb-6 leading-tight;
+  }
+  
+  .blog-content h2 {
+    @apply text-2xl md:text-3xl font-semibold text-[hsl(var(--blog-heading))] mb-4 mt-8 leading-tight;
+  }
+  
+  .blog-content h3 {
+    @apply text-xl md:text-2xl font-semibold text-[hsl(var(--blog-heading))] mb-3 mt-6 leading-tight;
+  }
+  
+  .blog-content p {
+    @apply text-base md:text-lg leading-relaxed mb-4;
+  }
+  
+  .blog-content ul, .blog-content ol {
+    @apply mb-4 pl-6;
+  }
+  
+  .blog-content li {
+    @apply mb-2 text-base md:text-lg leading-relaxed;
+  }
+  
+  .blog-content blockquote {
+    @apply border-l-4 border-primary/30 pl-4 italic text-[hsl(var(--blog-muted))] my-6;
+  }
+  
+  .blog-content strong {
+    @apply font-semibold text-[hsl(var(--blog-heading))];
+  }
+}
