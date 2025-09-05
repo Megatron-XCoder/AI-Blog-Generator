@@ -31,13 +31,13 @@ const BlogDisplay = ({ content, title, onRegenerate, isRegenerating }: BlogDispl
 
   const downloadAsText = () => {
     const element = document.createElement("a");
-    const file = new Blob([content], { type: 'text/plain' });
+    const file = new Blob([content], { type: "text/plain" });
     element.href = URL.createObjectURL(file);
-    element.download = `${title || 'blog-post'}.txt`;
+    element.download = `${title || "blog-post"}.txt`;
     document.body.appendChild(element);
     element.click();
     document.body.removeChild(element);
-    
+
     toast({
       title: "Download started!",
       description: "Your blog post is being downloaded as a text file.",
@@ -48,10 +48,10 @@ const BlogDisplay = ({ content, title, onRegenerate, isRegenerating }: BlogDispl
     if (navigator.share) {
       try {
         await navigator.share({
-          title: title || 'Generated Blog Post',
+          title: title || "Generated Blog Post",
           text: content,
         });
-      } catch (err) {
+      } catch {
         copyToClipboard();
       }
     } else {
@@ -59,243 +59,303 @@ const BlogDisplay = ({ content, title, onRegenerate, isRegenerating }: BlogDispl
     }
   };
 
-  // Format content with proper HTML structure
+  // Format content with proper HTML structure and mobile-friendly code blocks
   const formatContent = (text: string) => {
-    const lines = text.split('\n');
-    const result = [];
-    let currentList = null;
-    let currentListType = null;
+    const lines = text.split("\n");
+    const result: string[] = [];
+    let currentList: string[] | null = null;
+    let currentListType: "ul" | "ol" | "task" | null = null;
     let inTable = false;
-    let tableHeaders = [];
-    let tableRows = [];
+    let tableHeaders: string[] = [];
+    let tableRows: string[][] = [];
     let inCodeBlock = false;
-    let codeType = '';
-    let codeContent = [];
+    let codeType = "";
+    let codeContent: string[] = [];
     let inBlockquote = false;
-    let blockquoteContent = [];
-    
+    let blockquoteContent: Array<{ content: string; level: number }> = [];
+
     for (let i = 0; i < lines.length; i++) {
-      const line = lines[i].trim();
-      
-      // Skip empty lines but close any open lists
-      if (!line) {
+      const raw = lines[i];
+      const line = raw.trim();
+
+      // Empty line handling
+      if (!line && !inCodeBlock) {
         if (currentList) {
-          if (currentListType === 'ul') {
-            result.push(`<ul>${currentList.join('')}</ul>`);
-          } else if (currentListType === 'ol') {
-            result.push(`<ol>${currentList.join('')}</ol>`);
+          if (currentListType === "ul") {
+            result.push(
+              `<ul class="list-disc space-y-1 sm:space-y-2 mb-4 sm:mb-6 pl-4 sm:pl-6 marker:text-gray-500 dark:text-gray-300">${currentList.join(
+                ""
+              )}</ul>`
+            );
+          } else if (currentListType === "ol") {
+            result.push(
+              `<ol class="list-decimal space-y-1 sm:space-y-2 mb-4 sm:mb-6 pl-4 sm:pl-6 dark:text-gray-300">${currentList.join(
+                ""
+              )}</ol>`
+            );
+          } else if (currentListType === "task") {
+            result.push(`<ul class="space-y-2 mb-6">${currentList.join("")}</ul>`);
           }
           currentList = null;
           currentListType = null;
         }
         continue;
       }
-      
-      // Handle different heading levels
-      if (line.startsWith('#### ')) {
-        result.push(`<h4 class="text-base sm:text-lg font-semibold mt-4 sm:mt-6 mb-2 sm:mb-3">${line.slice(5)}</h4>`);
-      } else if (line.startsWith('### ')) {
-        result.push(`<h3 class="text-lg sm:text-xl font-semibold mt-5 sm:mt-6 mb-3 sm:mb-4">${line.slice(4)}</h3>`);
-      } else if (line.startsWith('## ')) {
-        result.push(`<h2 class="text-xl sm:text-2xl font-bold mt-6 sm:mt-8 mb-3 sm:mb-4">${line.slice(3)}</h2>`);
-      } else if (line.startsWith('# ')) {
-        result.push(`<h1 class="text-2xl sm:text-3xl font-bold mt-6 sm:mt-8 mb-3 sm:mb-4 relative z-10">${line.slice(2)}</h1>`);
-      } else if (line.startsWith('> ')) {
-        // Handle blockquotes with nesting
-        const content = line.slice(2);
-        const nestLevel = (line.match(/^>+/)[0].length - 1);
-        
+
+      // Headings
+      if (!inCodeBlock && line.startsWith("#### ")) {
+        result.push(
+          `<h4 class="text-base sm:text-lg font-semibold mt-4 sm:mt-6 mb-2 sm:mb-3">${line.slice(
+            5
+          )}</h4>`
+        );
+        continue;
+      }
+      if (!inCodeBlock && line.startsWith("### ")) {
+        result.push(
+          `<h3 class="text-lg sm:text-xl font-semibold mt-5 sm:mt-6 mb-3 sm:mb-4">${line.slice(
+            4
+          )}</h3>`
+        );
+        continue;
+      }
+      if (!inCodeBlock && line.startsWith("## ")) {
+        result.push(
+          `<h2 class="text-xl sm:text-2xl font-bold mt-6 sm:mt-8 mb-3 sm:mb-4">${line.slice(
+            3
+          )}</h2>`
+        );
+        continue;
+      }
+      if (!inCodeBlock && line.startsWith("# ")) {
+        result.push(
+          `<h1 class="text-2xl sm:text-3xl font-bold mt-6 sm:mt-8 mb-3 sm:mb-4 relative z-10">${line.slice(
+            2
+          )}</h1>`
+        );
+        continue;
+      }
+
+      // Blockquotes (nesting-aware)
+      if (!inCodeBlock && /^> /.test(line)) {
+        const content = line.replace(/^> +/, "");
+        const nestLevel = (raw.match(/^>+/)?.[0].length || 1) - 1;
         if (!inBlockquote) {
           inBlockquote = true;
           blockquoteContent = [];
         }
-        
         const formattedContent = content
-          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-          .replace(/\*(.*?)\*/g, '<em>$1</em>')
-          .replace(/~~(.*?)~~/g, '<del>$1</del>')
-          .replace(/`(.*?)`/g, '<code class="bg-muted px-1 py-0.5 rounded text-sm">$1</code>');
-        
+          .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+          .replace(/\*(.*?)\*/g, "<em>$1</em>")
+          .replace(/~~(.*?)~~/g, "<del>$1</del>")
+          .replace(/`(.*?)`/g, '<span class="bg-muted px-1 py-0.5 rounded text-sm font-mono">$1</span>');
         blockquoteContent.push({ content: formattedContent, level: nestLevel });
-      } else if (line.startsWith('|')) {
-        // Handle tables
+        continue;
+      }
+
+      // Tables
+      if (!inCodeBlock && line.startsWith("|")) {
         if (!inTable) {
           inTable = true;
-          const headerCells = line.split('|').filter(cell => cell.trim() !== '').map(cell => cell.trim());
-          tableHeaders = headerCells;
-        } else if (line.includes('|-')) {
-          // Skip table separator line
+          tableHeaders = line
+            .split("|")
+            .filter((c) => c.trim() !== "")
+            .map((c) => c.trim());
+        } else if (/\|\s*-+\s*\|/.test(line)) {
+          // separator row; ignore
         } else {
-          const cells = line.split('|').filter(cell => cell.trim() !== '').map(cell => cell.trim());
+          const cells = line
+            .split("|")
+            .filter((c) => c.trim() !== "")
+            .map((c) => c.trim());
           tableRows.push(cells);
         }
-      } else if (line.match(/^- \[[ x]\]/)) {
-        // Handle task lists
-        const checked = line.includes('[x]');
-        const content = line.replace(/^- \[[ x]\] /, '');
-        if (currentListType !== 'task' || !currentList) {
+        continue;
+      }
+
+      // Task lists
+      if (!inCodeBlock && /^- \[[ x]\] /.test(line)) {
+        const checked = /\[x\]/i.test(line);
+        const liContent = line.replace(/^- \[[ x]\] /i, "");
+        if (currentListType !== "task" || !currentList) {
           if (currentList) {
-            result.push(`<ul class="space-y-2 mb-4">${currentList.join('')}</ul>`);
+            result.push(`<ul class="space-y-2 mb-4">${currentList.join("")}</ul>`);
           }
           currentList = [];
-          currentListType = 'task';
+          currentListType = "task";
         }
-        currentList.push(`<li class="flex items-center gap-2"><input type="checkbox" ${checked ? 'checked' : ''} disabled />${content}</li>`);
-      } 
-      // Handle bullet points with proper nesting
-      else if (line.match(/^[\s]*[-*]\s/)) {
-        const indentLevel = (line.match(/^(\s*)/)?.[1]?.length || 0) / 2;
-        const content = line.replace(/^[\s]*[-*]\s/, '').trim()
-          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-          .replace(/\*(.*?)\*/g, '<em>$1</em>')
-          .replace(/`(.*?)`/g, '<code class="bg-muted px-1 py-0.5 rounded text-sm">$1</code>');
-        
-        if (currentListType !== 'ul' || !currentList) {
-          // Close any existing numbered list
-          if (currentList && currentListType === 'ol') {
-            result.push(`<ol class="list-decimal space-y-2 mb-6 pl-6">${currentList.join('')}</ol>`);
-          }
-          currentList = [];
-          currentListType = 'ul';
-        }
-        
-        currentList.push(`<li class="${indentLevel > 0 ? `ml-${indentLevel * 6}` : ''} text-gray-700">${content}</li>`);
+        currentList.push(
+          `<li class="flex items-center gap-2"><input type="checkbox" ${
+            checked ? "checked" : ""
+          } disabled />${liContent}</li>`
+        );
+        continue;
       }
-      // Handle numbered lists with proper nesting
-      else if (line.match(/^[\s]*\d+\.\s/)) {
-        const indentLevel = (line.match(/^(\s*)/)?.[1]?.length || 0) / 2;
-        const content = line.replace(/^[\s]*\d+\.\s/, '').trim();
-        
-        if (currentListType !== 'ol' || !currentList) {
-          // Close any existing bullet list
-          if (currentList && currentListType === 'ul') {
-            result.push(`<ul>${currentList.join('')}</ul>`);
+
+      // Bulleted lists
+      if (!inCodeBlock && /^[\s]*[-*]\s/.test(line)) {
+        const indentLevel = ((line.match(/^(\s*)/)?.[1]?.length || 0) / 2) | 0;
+        const liContent = line
+          .replace(/^[\s]*[-*]\s/, "")
+          .trim()
+          .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+          .replace(/\*(.*?)\*/g, "<em>$1</em>")
+          .replace(/`(.*?)`/g, '<span class="bg-muted px-1 py-0.5 rounded text-sm font-mono">$1</span>');
+
+        if (currentListType !== "ul" || !currentList) {
+          if (currentList && currentListType === "ol") {
+            result.push(`<ol class="list-decimal space-y-2 mb-6 pl-6">${currentList.join("")}</ol>`);
           }
           currentList = [];
-          currentListType = 'ol';
+          currentListType = "ul";
         }
-        
-        currentList.push(`<li class="${indentLevel > 0 ? `ml-${indentLevel * 4}` : ''}">${content}</li>`);
+        const ml = indentLevel > 0 ? ` ml-${indentLevel * 6}` : "";
+        currentList.push(`<li class="text-gray-700${ml}">${liContent}</li>`);
+        continue;
       }
-      // Handle code blocks
-      else if (line.startsWith('```')) {
+
+      // Numbered lists
+      if (!inCodeBlock && /^[\s]*\d+\.\s/.test(line)) {
+        const indentLevel = ((line.match(/^(\s*)/)?.[1]?.length || 0) / 2) | 0;
+        const liContent = line.replace(/^[\s]*\d+\.\s/, "").trim();
+
+        if (currentListType !== "ol" || !currentList) {
+          if (currentList && currentListType === "ul") {
+            result.push(`<ul class="list-disc space-y-2 mb-6 pl-6">${currentList.join("")}</ul>`);
+          }
+          currentList = [];
+          currentListType = "ol";
+        }
+        const ml = indentLevel > 0 ? ` ml-${indentLevel * 4}` : "";
+        currentList.push(`<li class="${ml}">${liContent}</li>`);
+        continue;
+      }
+
+      // Code blocks (mobile-friendly: local horizontal scroll only)
+      if (line.startsWith("```")) {
         if (!inCodeBlock) {
           inCodeBlock = true;
           codeType = line.slice(3).trim();
           codeContent = [];
         } else {
           inCodeBlock = false;
-          result.push(
-            `<div class="relative -mx-4 sm:mx-0 font-mono group">
-              <div class="absolute right-2 top-2 text-xs text-gray-500 dark:text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">Scroll to view →</div>
-              <pre class="bg-muted/80 dark:bg-muted p-3 sm:p-4 rounded-lg overflow-x-auto mb-4 text-[13px] sm:text-sm leading-relaxed scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600">
-                <code class="language-${codeType} block whitespace-pre text-gray-800 dark:text-gray-200">${
-                  codeContent.join('\n').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-                }</code>
-              </pre>
-            </div>`
-          );
+          const codeHtml = codeContent
+            .join("\n")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;");
+          result.push(`
+<div class="code-block not-prose my-4">
+  <pre class="w-full max-w-full overflow-x-auto rounded-lg p-3 sm:p-4 bg-gray-900 text-gray-100 text-xs sm:text-sm leading-relaxed">
+    <code class="language-${codeType} block whitespace-pre font-mono">${codeHtml}</code>
+  </pre>
+</div>`);
         }
+        continue;
+      } else if (inCodeBlock) {
+        codeContent.push(raw); // keep original spacing
+        continue;
       }
-      // Handle horizontal rules
-      else if (line.match(/^-{3,}$/) || line.match(/^\*{3,}$/) || line.match(/^_{3,}$/)) {
+
+      // Horizontal rules
+      if (/^-{3,}$/.test(line) || /^\*{3,}$/.test(line) || /^_{3,}$/.test(line)) {
         result.push('<hr class="my-8 border-t border-gray-200" />');
+        continue;
       }
-      // Handle regular paragraphs
-      else if (!inCodeBlock) {
-        // Close any open lists before adding paragraph
-        if (currentList) {
-          if (currentListType === 'ul') {
-            result.push(`<ul class="list-disc space-y-1 sm:space-y-2 mb-4 sm:mb-6 pl-4 sm:pl-6 marker:text-gray-500 dark:text-gray-300">${currentList.join('')}</ul>`);
-          } else if (currentListType === 'ol') {
-            result.push(`<ol class="list-decimal space-y-1 sm:space-y-2 mb-4 sm:mb-6 pl-4 sm:pl-6 dark:text-gray-300">${currentList.join('')}</ol>`);
-          }
-          currentList = null;
-          currentListType = null;
+
+      // Close lists before paragraph
+      if (currentList) {
+        if (currentListType === "ul") {
+          result.push(
+            `<ul class="list-disc space-y-1 sm:space-y-2 mb-4 sm:mb-6 pl-4 sm:pl-6 marker:text-gray-500 dark:text-gray-300">${currentList.join(
+              ""
+            )}</ul>`
+          );
+        } else if (currentListType === "ol") {
+          result.push(
+            `<ol class="list-decimal space-y-1 sm:space-y-2 mb-4 sm:mb-6 pl-4 sm:pl-6 dark:text-gray-300">${currentList.join(
+              ""
+            )}</ol>`
+          );
+        } else if (currentListType === "task") {
+          result.push(`<ul class="space-y-2 mb-6">${currentList.join("")}</ul>`);
         }
-        
-        // Format bold, italic, strikethrough, links, images and inline code
-        let formattedLine = line
-          .replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1" class="rounded-lg shadow-md max-w-full h-auto my-4" />')
-          .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" class="text-blue-600 hover:text-blue-800 transition-colors">$1</a>')
-          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-          .replace(/\*(.*?)\*/g, '<em>$1</em>')
-          .replace(/~~(.*?)~~/g, '<del>$1</del>')
-          .replace(/`(.*?)`/g, '<code class="bg-muted px-1 py-0.5 rounded text-sm">$1</code>');
-        
-        result.push(`<p class="mb-3 sm:mb-4 leading-relaxed text-sm sm:text-base">${formattedLine}</p>`);
+        currentList = null;
+        currentListType = null;
       }
-      // Add line to code block if we're in one
-      else {
-        codeContent.push(line);
-      }
+
+      // Regular paragraphs
+      let formattedLine = line
+        .replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1" class="rounded-lg shadow-md max-w-full h-auto my-4" />')
+        .replace(
+          /\[(.*?)\]\((.*?)\)/g,
+          '<a href="$2" class="text-blue-600 hover:text-blue-800 transition-colors underline-offset-2">$1</a>'
+        )
+        .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+        .replace(/\*(.*?)\*/g, "<em>$1</em>")
+        .replace(/~~(.*?)~~/g, "<del>$1</del>")
+        .replace(/`(.*?)`/g, '<span class="bg-muted px-1 py-0.5 rounded text-sm font-mono">$1</span>');
+
+      result.push(`<p class="mb-3 sm:mb-4 leading-relaxed text-sm sm:text-base">${formattedLine}</p>`);
     }
-    
-    // Close any remaining elements
+
+    // Close any remaining structures
     if (currentList) {
-      if (currentListType === 'ul') {
-        result.push(`<ul class="list-disc space-y-2 mb-6 pl-6 marker:text-gray-500">${currentList.join('')}</ul>`);
-      } else if (currentListType === 'ol') {
-        result.push(`<ol class="list-decimal space-y-2 mb-6 pl-6">${currentList.join('')}</ol>`);
-      } else if (currentListType === 'task') {
-        result.push(`<ul class="space-y-2 mb-6">${currentList.join('')}</ul>`);
+      if (currentListType === "ul") {
+        result.push(`<ul class="list-disc space-y-2 mb-6 pl-6 marker:text-gray-500">${currentList.join("")}</ul>`);
+      } else if (currentListType === "ol") {
+        result.push(`<ol class="list-decimal space-y-2 mb-6 pl-6">${currentList.join("")}</ol>`);
+      } else if (currentListType === "task") {
+        result.push(`<ul class="space-y-2 mb-6">${currentList.join("")}</ul>`);
       }
     }
 
     if (inTable) {
       const tableHtml = `
-        <div class="overflow-x-auto mb-4 -mx-4 sm:mx-0">
-          <div class="inline-block min-w-full align-middle">
-            <table class="min-w-full divide-y divide-gray-200">
-              <thead class="bg-gray-50">
-                <tr>
-                  ${tableHeaders.map(header => `<th class="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">${header}</th>`).join('')}
-                </tr>
-              </thead>
-              <tbody class="bg-white divide-y divide-gray-200">
-                ${tableRows.map(row => `
-                  <tr>
-                    ${row.map(cell => `<td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-normal sm:whitespace-nowrap text-xs sm:text-sm text-gray-500">${cell}</td>`).join('')}
-                  </tr>
-                `).join('')}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      `;
+<div class="overflow-x-auto mb-4">
+  <div class="inline-block min-w-full align-middle">
+    <table class="min-w-full divide-y divide-gray-200">
+      <thead class="bg-gray-50">
+        <tr>
+          ${tableHeaders
+            .map(
+              (header) =>
+                `<th class="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">${header}</th>`
+            )
+            .join("")}
+        </tr>
+      </thead>
+      <tbody class="bg-white divide-y divide-gray-200">
+        ${tableRows
+          .map(
+            (row) => `
+          <tr>
+            ${row
+              .map(
+                (cell) =>
+                  `<td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-normal sm:whitespace-nowrap text-xs sm:text-sm text-gray-600">${cell}</td>`
+              )
+              .join("")}
+          </tr>`
+          )
+          .join("")}
+      </tbody>
+    </table>
+  </div>
+</div>`;
       result.push(tableHtml);
     }
 
     if (inBlockquote) {
-      // Process nested blockquotes
-      let currentLevel = 0;
-      let currentContent = [];
-      let finalBlockquote = '';
-      
-      const processLevel = (content, level) => {
-        if (level === 0) {
-          return `<blockquote class="border-l-4 border-gray-300 pl-3 sm:pl-4 py-2 mb-3 sm:mb-4 italic text-sm sm:text-base">${content}</blockquote>`;
-        }
-        return `<blockquote class="border-l-4 border-gray-300 pl-3 sm:pl-4 py-2 italic text-sm sm:text-base">${content}</blockquote>`;
-      };
-      
-      for (const { content, level } of blockquoteContent) {
-        if (level === currentLevel) {
-          currentContent.push(content);
-        } else if (level > currentLevel) {
-          finalBlockquote = processLevel(currentContent.join('<br/>'), currentLevel);
-          currentContent = [finalBlockquote, content];
-          currentLevel = level;
-        } else {
-          currentContent = [content];
-          currentLevel = level;
-        }
-      }
-      
-      result.push(processLevel(currentContent.join('<br/>'), currentLevel));
+      const processLevel = (content: string) =>
+        `<blockquote class="border-l-4 border-gray-300 pl-3 sm:pl-4 py-2 mb-3 sm:mb-4 italic text-sm sm:text-base">${content}</blockquote>`;
+
+      // Simple flatten for nested quotes (keeps order)
+      const finalBlock = blockquoteContent.map((b) => b.content).join("<br/>");
+      result.push(processLevel(finalBlock));
     }
-    
-    return result.join('');
+
+    return result.join("");
   };
 
   return (
@@ -305,10 +365,10 @@ const BlogDisplay = ({ content, title, onRegenerate, isRegenerating }: BlogDispl
           <div>
             <h2 className="text-2xl font-bold mb-2">Generated Blog Post</h2>
             <p className="text-muted-foreground">
-              {content.split(' ').length} words • {Math.ceil(content.split(' ').length / 200)} min read
+              {content.split(" ").length} words • {Math.ceil(content.split(" ").length / 200)} min read
             </p>
           </div>
-          
+
           <div className="flex flex-wrap gap-2 w-full sm:w-auto">
             {onRegenerate && (
               <Button
@@ -339,9 +399,10 @@ const BlogDisplay = ({ content, title, onRegenerate, isRegenerating }: BlogDispl
             </Button>
           </div>
         </div>
-        
-        <div 
-          className="blog-content prose prose-sm sm:prose-base lg:prose-lg max-w-none dark:prose-invert prose-headings:font-bold prose-a:text-blue-600 prose-code:text-blue-600 prose-pre:bg-gray-800 prose-pre:text-gray-100 overflow-x-auto"
+
+        <div
+          className="blog-content prose prose-sm sm:prose-base lg:prose-lg max-w-none dark:prose-invert prose-headings:font-bold prose-a:text-blue-600 prose-code:text-blue-600 prose-pre:bg-gray-800 prose-pre:text-gray-100 overflow-x-hidden"
+          // ^ overflow-x-hidden here ensures the page itself never gets a horizontal scrollbar.
           dangerouslySetInnerHTML={{ __html: formatContent(content) }}
         />
       </Card>
