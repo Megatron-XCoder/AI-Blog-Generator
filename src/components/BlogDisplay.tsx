@@ -186,9 +186,14 @@ const BlogDisplay = ({ content, title, onRegenerate, isRegenerating }: BlogDispl
         } else {
           inCodeBlock = false;
           result.push(
-            `<pre class="bg-muted p-2 sm:p-4 rounded-lg overflow-x-auto mb-4 -mx-4 sm:mx-0"><code class="language-${codeType} text-xs sm:text-sm">${
-              codeContent.join('\n').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-            }</code></pre>`
+            `<div class="relative -mx-4 sm:mx-0 font-mono group">
+              <div class="absolute right-2 top-2 text-xs text-gray-500 dark:text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">Scroll to view →</div>
+              <pre class="bg-muted/80 dark:bg-muted p-3 sm:p-4 rounded-lg overflow-x-auto mb-4 text-[13px] sm:text-sm leading-relaxed scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600">
+                <code class="language-${codeType} block whitespace-pre text-gray-800 dark:text-gray-200">${
+                  codeContent.join('\n').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                }</code>
+              </pre>
+            </div>`
           );
         }
       }
