@@ -93,13 +93,13 @@ const BlogDisplay = ({ content, title, onRegenerate, isRegenerating }: BlogDispl
       
       // Handle different heading levels
       if (line.startsWith('#### ')) {
-        result.push(`<h4 class="text-lg font-semibold mt-6 mb-3">${line.slice(5)}</h4>`);
+        result.push(`<h4 class="text-base sm:text-lg font-semibold mt-4 sm:mt-6 mb-2 sm:mb-3">${line.slice(5)}</h4>`);
       } else if (line.startsWith('### ')) {
-        result.push(`<h3 class="text-xl font-semibold mt-6 mb-4">${line.slice(4)}</h3>`);
+        result.push(`<h3 class="text-lg sm:text-xl font-semibold mt-5 sm:mt-6 mb-3 sm:mb-4">${line.slice(4)}</h3>`);
       } else if (line.startsWith('## ')) {
-        result.push(`<h2 class="text-2xl font-bold mt-8 mb-4">${line.slice(3)}</h2>`);
+        result.push(`<h2 class="text-xl sm:text-2xl font-bold mt-6 sm:mt-8 mb-3 sm:mb-4">${line.slice(3)}</h2>`);
       } else if (line.startsWith('# ')) {
-        result.push(`<h1 class="text-3xl font-bold mt-8 -mb-2 relative z-10">${line.slice(2)}</h1>`);
+        result.push(`<h1 class="text-2xl sm:text-3xl font-bold mt-6 sm:mt-8 mb-3 sm:mb-4 relative z-10">${line.slice(2)}</h1>`);
       } else if (line.startsWith('> ')) {
         // Handle blockquotes with nesting
         const content = line.slice(2);
@@ -186,7 +186,7 @@ const BlogDisplay = ({ content, title, onRegenerate, isRegenerating }: BlogDispl
         } else {
           inCodeBlock = false;
           result.push(
-            `<pre class="bg-muted p-4 rounded-lg overflow-x-auto mb-4"><code class="language-${codeType} text-sm">${
+            `<pre class="bg-muted p-2 sm:p-4 rounded-lg overflow-x-auto mb-4 -mx-4 sm:mx-0"><code class="language-${codeType} text-xs sm:text-sm">${
               codeContent.join('\n').replace(/</g, '&lt;').replace(/>/g, '&gt;')
             }</code></pre>`
           );
@@ -201,9 +201,9 @@ const BlogDisplay = ({ content, title, onRegenerate, isRegenerating }: BlogDispl
         // Close any open lists before adding paragraph
         if (currentList) {
           if (currentListType === 'ul') {
-            result.push(`<ul class="list-disc space-y-2 mb-6 pl-6 marker:text-gray-500 dark:text-gray-300">${currentList.join('')}</ul>`);
+            result.push(`<ul class="list-disc space-y-1 sm:space-y-2 mb-4 sm:mb-6 pl-4 sm:pl-6 marker:text-gray-500 dark:text-gray-300">${currentList.join('')}</ul>`);
           } else if (currentListType === 'ol') {
-            result.push(`<ol class="list-decimal space-y-2 mb-6 pl-6 dark:text-gray-300">${currentList.join('')}</ol>`);
+            result.push(`<ol class="list-decimal space-y-1 sm:space-y-2 mb-4 sm:mb-6 pl-4 sm:pl-6 dark:text-gray-300">${currentList.join('')}</ol>`);
           }
           currentList = null;
           currentListType = null;
@@ -211,14 +211,14 @@ const BlogDisplay = ({ content, title, onRegenerate, isRegenerating }: BlogDispl
         
         // Format bold, italic, strikethrough, links, images and inline code
         let formattedLine = line
-          .replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1" class="rounded-lg shadow-md max-w-full h-auto" />')
+          .replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1" class="rounded-lg shadow-md max-w-full h-auto my-4" />')
           .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" class="text-blue-600 hover:text-blue-800 transition-colors">$1</a>')
           .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
           .replace(/\*(.*?)\*/g, '<em>$1</em>')
           .replace(/~~(.*?)~~/g, '<del>$1</del>')
           .replace(/`(.*?)`/g, '<code class="bg-muted px-1 py-0.5 rounded text-sm">$1</code>');
         
-        result.push(`<p class="mb-4 leading-relaxed">${formattedLine}</p>`);
+        result.push(`<p class="mb-3 sm:mb-4 leading-relaxed text-sm sm:text-base">${formattedLine}</p>`);
       }
       // Add line to code block if we're in one
       else {
@@ -239,21 +239,23 @@ const BlogDisplay = ({ content, title, onRegenerate, isRegenerating }: BlogDispl
 
     if (inTable) {
       const tableHtml = `
-        <div class="overflow-x-auto mb-4">
-          <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
-              <tr>
-                ${tableHeaders.map(header => `<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">${header}</th>`).join('')}
-              </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-              ${tableRows.map(row => `
+        <div class="overflow-x-auto mb-4 -mx-4 sm:mx-0">
+          <div class="inline-block min-w-full align-middle">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
                 <tr>
-                  ${row.map(cell => `<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${cell}</td>`).join('')}
+                  ${tableHeaders.map(header => `<th class="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">${header}</th>`).join('')}
                 </tr>
-              `).join('')}
-            </tbody>
-          </table>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                ${tableRows.map(row => `
+                  <tr>
+                    ${row.map(cell => `<td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-normal sm:whitespace-nowrap text-xs sm:text-sm text-gray-500">${cell}</td>`).join('')}
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
         </div>
       `;
       result.push(tableHtml);
@@ -267,9 +269,9 @@ const BlogDisplay = ({ content, title, onRegenerate, isRegenerating }: BlogDispl
       
       const processLevel = (content, level) => {
         if (level === 0) {
-          return `<blockquote class="border-l-4 border-gray-300 pl-4 py-2 mb-4 italic">${content}</blockquote>`;
+          return `<blockquote class="border-l-4 border-gray-300 pl-3 sm:pl-4 py-2 mb-3 sm:mb-4 italic text-sm sm:text-base">${content}</blockquote>`;
         }
-        return `<blockquote class="border-l-4 border-gray-300 pl-4 py-2 italic">${content}</blockquote>`;
+        return `<blockquote class="border-l-4 border-gray-300 pl-3 sm:pl-4 py-2 italic text-sm sm:text-base">${content}</blockquote>`;
       };
       
       for (const { content, level } of blockquoteContent) {
@@ -292,9 +294,9 @@ const BlogDisplay = ({ content, title, onRegenerate, isRegenerating }: BlogDispl
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto space-y-6">
-      <Card className="p-6 shadow-medium">
-        <div className="flex justify-between items-start mb-6">
+    <div className="w-full max-w-4xl mx-auto space-y-4 px-4 sm:px-6 md:space-y-6">
+      <Card className="p-4 sm:p-6 shadow-medium overflow-hidden">
+        <div className="flex flex-col sm:flex-row justify-between items-start gap-4 sm:gap-0 mb-4 sm:mb-6">
           <div>
             <h2 className="text-2xl font-bold mb-2">Generated Blog Post</h2>
             <p className="text-muted-foreground">
@@ -302,7 +304,7 @@ const BlogDisplay = ({ content, title, onRegenerate, isRegenerating }: BlogDispl
             </p>
           </div>
           
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2 w-full sm:w-auto">
             {onRegenerate && (
               <Button
                 variant="outline"
@@ -334,7 +336,7 @@ const BlogDisplay = ({ content, title, onRegenerate, isRegenerating }: BlogDispl
         </div>
         
         <div 
-          className="blog-content prose prose-lg max-w-none dark:prose-invert prose-headings:font-bold prose-a:text-blue-600 prose-code:text-blue-600 prose-pre:bg-gray-800 prose-pre:text-gray-100"
+          className="blog-content prose prose-sm sm:prose-base lg:prose-lg max-w-none dark:prose-invert prose-headings:font-bold prose-a:text-blue-600 prose-code:text-blue-600 prose-pre:bg-gray-800 prose-pre:text-gray-100 overflow-x-auto"
           dangerouslySetInnerHTML={{ __html: formatContent(content) }}
         />
       </Card>
